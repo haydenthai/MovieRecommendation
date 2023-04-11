@@ -1,7 +1,6 @@
-import { Navbar } from "./components/Navbar";
 import Link from "next/link";
-import Image from "next/image";
-import { useRef, useState } from "react";
+import * as React from "react";
+import { Navbar } from "../components/Navbar";
 
 type Movie = {
   adult: boolean;
@@ -20,11 +19,14 @@ type Movie = {
   vote_count: number;
 };
 
-const MOVIE_API = "https://api.themoviedb.org/3";
+interface IMovieSearchProps {
+  movies: Movie[];
 
-export default function Home({ movies }: { movies: Movie[] }) {
-  const [searchTerm, setSearchTerm] = useState("");
+}
 
+const MovieSearch: React.FunctionComponent<IMovieSearchProps> = ({ movies}:IMovieSearchProps) => {
+  const [searchTerm, setSearchTerm] = React.useState("");
+  
   return (
     <div className="bg-gradient-to-b from-black to-gray-900 min-h-screen">
       <Navbar />
@@ -36,19 +38,20 @@ export default function Home({ movies }: { movies: Movie[] }) {
             className="w-96 px-4 py-2 rounded-l-lg focus:outline-none focus:ring focus:border-blue-300 bg-white text-black"
             onChange={(e) => setSearchTerm(e.target.value)}
           />
-
+          
           <Link
             className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-r-lg"
             href={`/search/searchTerm=${searchTerm}`}
           >
+            
             Search
           </Link>
         </div>
       </div>
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold text-white mb-4">Popular Movies</h2>
+        
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-          {movies.map((movie: Movie) => (
+        {movies.map((movie: Movie) => (
             <div
               key={movie.id}
               className="bg-gray-900 rounded-lg overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300"
@@ -81,17 +84,17 @@ export default function Home({ movies }: { movies: Movie[] }) {
       </div>
     </div>
   );
-}
+};
 
-export const getServerSideProps = async () => {
-  const res = await fetch(
-    `${MOVIE_API}/movie/popular?api_key=${process.env.API_KEY}&language=en-US&page=1`
-  );
+export default MovieSearch;
+
+export async function getServerSideProps(context: any) {
+  const res = await fetch(`https://api.themoviedb.org/3/search/movie?api_key=${process.env.API_KEY}&query=${context.query.movieSearch.split("=")[1]}`);
   const data = await res.json();
-
+  const movies = data.results ? data.results : [];
   return {
     props: {
-      movies: data.results,
-    },
+      movies: movies,
+    }, // will be passed to the page component as props
   };
-};
+}
