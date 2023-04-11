@@ -21,3 +21,5 @@ export function Navbar (props: INavbarProps) {
   </>
   );
 }
+
+export default Navbar
